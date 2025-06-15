@@ -366,7 +366,7 @@
     <h1>🎵 Emotion-Based Music Recommender</h1>
     
     <div class="camera-container">
-      <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Camera Feed" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzFhMGYzYyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5DYW1lcmEgbm90IGF2YWlsYWJsZSBpbiBwcm9kdWN0aW9uPC90ZXh0Pjwvc3ZnPg=='">
+      <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Camera Feed" id="cameraFeed">
     </div>
 
     <div class="controls">
@@ -480,6 +480,28 @@
             });
         }
     }
+
+    // Request camera permissions
+    async function setupCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = stream;
+        videoElement.play();
+        
+        // Replace the img with video element
+        const cameraFeed = document.getElementById('cameraFeed');
+        cameraFeed.parentNode.replaceChild(videoElement, cameraFeed);
+        videoElement.className = 'camera-feed';
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        const cameraFeed = document.getElementById('cameraFeed');
+        cameraFeed.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNTAwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iIzFhMGYzYyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5QbGVhc2UgYWxsb3cgY2FtZXJhIGFjY2VzcyB0byB1c2UgdGhpcyBmZWF0dXJlPC90ZXh0Pjwvc3ZnPg==';
+      }
+    }
+
+    // Call setupCamera when the page loads
+    window.addEventListener('load', setupCamera);
   </script>
 </body>
 </html>

@@ -8,9 +8,11 @@ services:
     startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.7
+        value: 3.9.16
+      - key: FLASK_ENV
+        value: production
       - key: SPOTIPY_CLIENT_ID
         sync: false
       - key: SPOTIPY_CLIENT_SECRET
         sync: false
-    pythonVersion: 3.9.7 
+    pythonVersion: 3.9.16 

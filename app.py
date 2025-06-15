@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect
 import cv2
 from deepface import DeepFace
 import os
@@ -8,11 +8,19 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import sys
 import numpy as np
 import random
+import ssl
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+
+# Force HTTPS in production
+@app.before_request
+def before_request():
+    if not request.is_secure and os.environ.get('FLASK_ENV') == 'production':
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
 
 # Spotify credentials
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
@@ -189,4 +197,4 @@ if __name__ == '__main__':
     print("🚀 Starting Emotion Music Recommender...")
     print("📝 Make sure you have created a .env file with your Spotify credentials")
     print("🌐 Open http://127.0.0.1:5000 in your browser")
-    app.run(debug=True)
+    app.run(debug=True, ssl_context='adhoc')
