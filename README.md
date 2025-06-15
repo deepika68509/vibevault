@@ -14,7 +14,7 @@ A web application that detects your emotions through your camera and recommends 
 
 ## Tech Stack
 
-- Python 3.9.18
+- Python 3.9.7
 - Flask
 - OpenCV for emotion detection
 - Spotify API for music recommendations
