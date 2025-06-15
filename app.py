@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify, Response
 import cv2
-from deepface import DeepFace
 import os
 from dotenv import load_dotenv
 import spotipy
@@ -31,7 +30,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
 # Global variables for camera
 camera = None
 current_emotion = "neutral"
-detected_emotion = None  # Store the emotion detected when button is clicked
+detected_emotion = None
 
 def get_camera():
     global camera
@@ -43,9 +42,6 @@ def get_camera():
 
 def generate_frames():
     global current_emotion, detected_emotion
-    frame_count = 0
-    max_frames = 10  # Process every 10 frames
-
     while True:
         success, frame = get_camera().read()
         if not success:
@@ -54,17 +50,6 @@ def generate_frames():
             # Flip the frame horizontally for mirror effect
             frame = cv2.flip(frame, 1)
             
-            # Process every 10 frames to reduce CPU usage
-            if frame_count % max_frames == 0:
-                try:
-                    # Convert frame to RGB for DeepFace
-                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    result = DeepFace.analyze(rgb_frame, actions=["emotion"], enforce_detection=False, silent=True)
-                    current_emotion = result[0]['dominant_emotion']
-                except Exception as e:
-                    print("❌ Emotion detection failed:", e)
-                    current_emotion = "neutral"
-
             # Add emotion text to frame
             emotion_text = f"Current: {current_emotion}"
             if detected_emotion:
@@ -77,14 +62,12 @@ def generate_frames():
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            
-            frame_count += 1
 
 def get_spotify_tracks(emotion, language='english'):
     try:
         # Language-specific queries with more specific terms
         language_queries = {
-            'english': f"{emotion} mood english songs",  # More specific for English
+            'english': f"{emotion} mood english songs",
             'hindi': f"{emotion} mood hindi bollywood",
             'kannada': f"{emotion} mood kannada",
             'tamil': f"{emotion} mood tamil",
@@ -96,10 +79,7 @@ def get_spotify_tracks(emotion, language='english'):
             'gujarati': f"{emotion} mood gujarati"
         }
 
-        # Get tracks for the selected language
         query = language_queries.get(language.lower(), language_queries['english'])
-        
-        # Get more tracks than needed to allow for better shuffling
         results = sp.search(q=query, type='track', limit=50)
         tracks = []
 
@@ -114,7 +94,6 @@ def get_spotify_tracks(emotion, language='english'):
             }
             tracks.append(track)
 
-        # Shuffle the tracks and return only 12
         random.shuffle(tracks)
         return tracks[:15]
     except Exception as e:
