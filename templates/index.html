@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Emotion Music Recommender</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes meshMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(100px, 100px); }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        45deg,
+        #1a0f3c,
+        #2b1055,
+        #4a1b6d,
+        #6a2c8e,
+        #8a3daf,
+        #7597de
+      );
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background-image: 
+        radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 8%),
+        radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 8%);
+      background-size: 100px 100px;
+      background-position: 0 0, 50px 50px;
+      animation: meshMove 20s linear infinite;
+      z-index: -1;
+      opacity: 0.5;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 30px;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      background: linear-gradient(to right, #fff, #a8c0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+
+    .camera-container {
+      width: 500px;
+      height: 350px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: slideIn 0.8s ease-out;
+      position: relative;
+    }
+
+    .camera-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .camera-feed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.1);
+      padding: 15px 25px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      animation: slideIn 0.8s ease-out 0.2s backwards;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #language-select {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #language-select:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    #language-select option {
+      background: #2b1055;
+      color: white;
+    }
+
+    #detect-btn {
+      background: linear-gradient(135deg, #ff6a00, #ee0979);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    #detect-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    #detect-btn:active {
+      transform: translateY(1px);
+    }
+
+    #emotion-result {
+      font-size: 1.5em;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      text-align: center;
+      backdrop-filter: blur(5px);
+      animation: slideIn 0.8s ease-out 0.4s backwards;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #songs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      margin-top: 30px;
+      padding: 0 20px;
+    }
+
+    .song-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      transition: transform 0.3s ease;
+      backdrop-filter: blur(5px);
+      animation: slideIn 0.8s ease-out backwards;
+      animation-delay: calc(var(--animation-order) * 0.1s);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .song-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.15);
+    }
+
+    .song-card img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .song-card h3 {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+
+    .song-card p {
+      color: #ccc;
+      margin: 5px 0;
+    }
+
+    .song-card .language-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      margin-top: 5px;
+    }
+
+    .spotify-link {
+      display: inline-block;
+      background: #1DB954;
+      color: white;
+      text-decoration: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      margin-top: 10px;
+      transition: background 0.3s ease;
+    }
+
+    .spotify-link:hover {
+      background: #1ed760;
+    }
+
+    .loading {
+      display: none;
+      margin: 20px 0;
+      background: rgba(255,255,255,0.1);
+      padding: 15px 30px;
+      border-radius: 8px;
+      backdrop-filter: blur(5px);
+    }
+
+    .loading.active {
+      display: block;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .loading p {
+      margin: 0;
+    }
+
+    /* Add floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    .orb-1 {
+      width: 300px;
+      height: 300px;
+      background: #ff6a00;
+      top: -100px;
+      left: -100px;
+      animation: floatOrb 20s infinite;
+    }
+
+    .orb-2 {
+      width: 400px;
+      height: 400px;
+      background: #ee0979;
+      bottom: -200px;
+      right: -200px;
+      animation: floatOrb 25s infinite reverse;
+    }
+
+    .orb-3 {
+      width: 200px;
+      height: 200px;
+      background: #7597de;
+      top: 50%;
+      left: 50%;
+      animation: floatOrb 15s infinite;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(100px, 100px); }
+      50% { transform: translate(0, 200px); }
+      75% { transform: translate(-100px, 100px); }
+      100% { transform: translate(0, 0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  
+  <div class="content-wrapper">
+    <h1>🎵 Emotion-Based Music Recommender</h1>
+    
+    <div class="camera-container">
+      <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Camera Feed">
+    </div>
+
+    <div class="controls">
+      <select id="language-select">
+        <option value="english">English</option>
+        <option value="hindi">Hindi</option>
+        <option value="kannada">Kannada</option>
+        <option value="tamil">Tamil</option>
+        <option value="telugu">Telugu</option>
+        <option value="malayalam">Malayalam</option>
+        <option value="bengali">Bengali</option>
+        <option value="marathi">Marathi</option>
+        <option value="punjabi">Punjabi</option>
+        <option value="gujarati">Gujarati</option>
+      </select>
+
+      <button id="detect-btn">Get Music Recommendations</button>
+    </div>
+    
+    <div id="emotion-result"></div>
+    
+    <div class="loading" id="loading">
+      <p>🎵 Finding the perfect songs for your mood...</p>
+    </div>
+
+    <div id="songs"></div>
+  </div>
+
+  <script>
+    const detectBtn = document.getElementById('detect-btn');
+    const emotionResult = document.getElementById('emotion-result');
+    const songsContainer = document.getElementById('songs');
+    const loading = document.getElementById('loading');
+    const languageSelect = document.getElementById('language-select');
+
+    detectBtn.onclick = async () => {
+      emotionResult.textContent = '🎭 Getting recommendations...';
+      songsContainer.innerHTML = '';
+      loading.classList.add('active');
+
+      try {
+        const response = await fetch('/detect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            language: languageSelect.value
+          })
+        });
+        const data = await response.json();
+
+        if (data.error) {
+          emotionResult.textContent = `❌ Error: ${data.error}`;
+          return;
+        }
+
+        emotionResult.textContent = `🎯 Detected Emotion: ${data.emotion}`;
+
+        data.tracks.forEach((track, index) => {
+          const card = document.createElement('div');
+          card.className = 'song-card';
+          card.style.setProperty('--animation-order', index);
+          card.innerHTML = `
+            <img src="${track.image}" alt="Album cover">
+            <h3>${track.name}</h3>
+            <p>${track.artist}</p>
+            <span class="language-tag">${track.language}</span>
+            <a href="${track.external_url}" target="_blank" class="spotify-link">
+              Open in Spotify
+            </a>
+          `;
+          songsContainer.appendChild(card);
+        });
+      } catch (error) {
+        emotionResult.textContent = '❌ Error: Could not get recommendations';
+        console.error('Error:', error);
+      } finally {
+        loading.classList.remove('active');
+      }
+    };
+
+    // Clean up camera when leaving the page
+    window.onbeforeunload = async () => {
+      await fetch('/stop_camera');
+    };
+  </script>
+</body>
+</html>
