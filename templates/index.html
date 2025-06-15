@@ -324,6 +324,36 @@
       75% { transform: translate(-100px, 100px); }
       100% { transform: translate(0, 0); }
     }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .text-input {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      width: 300px;
+      transition: background 0.3s ease;
+    }
+
+    .text-input::placeholder {
+      color: rgba(255,255,255,0.6);
+    }
+
+    .text-input:focus {
+      outline: none;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .text-input:hover {
+      background: rgba(255,255,255,0.15);
+    }
   </style>
 </head>
 <body>
@@ -352,7 +382,10 @@
         <option value="gujarati">Gujarati</option>
       </select>
 
-      <button id="detect-btn">Get Music Recommendations</button>
+      <div class="input-group">
+        <input type="text" id="emotion-text" placeholder="Or describe how you feel..." class="text-input">
+        <button id="detect-btn">Get Music Recommendations</button>
+      </div>
     </div>
     
     <div id="emotion-result"></div>
@@ -362,6 +395,11 @@
     </div>
 
     <div id="songs"></div>
+
+    <div class="input-group mb-3">
+        <input type="text" id="emotionInput" class="form-control" placeholder="Enter emotion (e.g., happy, sad, angry)" aria-label="Emotion Input">
+        <button class="btn btn-primary" type="button" onclick="detectEmotion()">Detect Emotion</button>
+    </div>
   </div>
 
   <script>
@@ -383,7 +421,8 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            language: languageSelect.value
+            language: languageSelect.value,
+            text: document.getElementById('emotion-text').value
           })
         });
         const data = await response.json();
@@ -422,6 +461,24 @@
     window.onbeforeunload = async () => {
       await fetch('/stop_camera');
     };
+
+    function detectEmotion() {
+        const emotionInput = document.getElementById('emotionInput').value;
+        if (emotionInput) {
+            fetch('/detect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: emotionInput }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response data
+                console.log(data);
+            });
+        }
+    }
   </script>
 </body>
 </html>

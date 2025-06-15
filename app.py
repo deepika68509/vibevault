@@ -135,9 +135,15 @@ def detect():
     global current_emotion, detected_emotion
     data = request.get_json()
     language = data.get('language', 'english')
+    text_input = data.get('text', '')
     
-    # Store the current emotion as the detected emotion
-    detected_emotion = current_emotion
+    if text_input:
+        # Use manual emotion input
+        detected_emotion = text_input.lower()
+    else:
+        # Use camera-based emotion detection
+        detected_emotion = current_emotion
+    
     tracks = get_spotify_tracks(detected_emotion, language)
     return jsonify({"emotion": detected_emotion, "tracks": tracks})
 
