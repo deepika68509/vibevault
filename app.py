@@ -196,5 +196,5 @@ def stop_camera():
 if __name__ == '__main__':
     print("🚀 Starting Emotion Music Recommender...")
     print("📝 Make sure you have created a .env file with your Spotify credentials")
-    print("🌐 Open http://127.0.0.1:5000 in your browser")
-    app.run(debug=True, ssl_context='adhoc')
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
